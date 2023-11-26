@@ -2,19 +2,19 @@
 
 import React, { useEffect, useState } from "react";
 import {
-  View,
-  TextInput,
-  Text,
-  Button,
-  StyleSheet,
   Alert,
+  Button,
   ImageBackground,
+  StyleSheet,
+  Text,
+  TextInput,
   TouchableOpacity,
+  View,
 } from "react-native";
 import { StackScreenProps } from "@react-navigation/stack";
 import { RootStackParamList } from "../../App"; // Assure-toi que le chemin est correct
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { initSocket, getSocket } from "../utils/socket";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { getSocket, initSocket } from "../utils/socket";
 type Props = StackScreenProps<RootStackParamList, "Home">;
 
 const HomeScreen: React.FC<Props> = ({ navigation }) => {
@@ -47,7 +47,7 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
 
   useEffect(() => {
     setImageUri(
-      "https://images.pexels.com/photos/18799961/pexels-photo-18799961/free-photo-of-maisons-maison-centrale-fenetres.jpeg"
+      "https://images.pexels.com/photos/18799961/pexels-photo-18799961/free-photo-of-maisons-maison-centrale-fenetres.jpeg",
     ); // URL de ton image
   }, []);
 

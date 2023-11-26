@@ -1,27 +1,27 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
-  View,
-  Text,
   Button,
   FlatList,
   StyleSheet,
+  Text,
   TextInput,
   TouchableOpacity,
+  View,
 } from "react-native";
 import { StackScreenProps } from "@react-navigation/stack";
 import { RootStackParamList } from "../../App"; // Assure-toi que le chemin est correct
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { getSocket, encodeAsync, decodeAsync } from "../utils/socket";
+import { decodeAsync, encodeAsync, getSocket } from "../utils/socket";
 type Props = StackScreenProps<RootStackParamList, "UserManagement">;
-import { 
+import {
+  ChannelType,
+  IClientListPacket,
+  IJoinChannelPacket,
+  IListChannelPacket,
   IPacket,
   IStatusChannelPacket,
-  IListChannelPacket,
-  IJoinChannelPacket,
-  StatusChannelType,
-  ChannelType,
   IStatusClientPacket,
-  IClientListPacket
+  StatusChannelType,
 } from "../packet/index";
 
 type User = {
@@ -29,53 +29,67 @@ type User = {
 };
 
 const UserManagementScreen: React.FC<Props> = ({ navigation }) => {
-  const [users, setUsers] = useState<User[]>([]);    
-  const [currentUser, setCurrentUser] = useState(''); // Nom d'utilisateur actuel
+  const [users, setUsers] = useState<User[]>([]);
+  const [currentUser, setCurrentUser] = useState(""); // Nom d'utilisateur actuel
 
+  const fetchUserName = async () => {
+    try {
+      const userName = await AsyncStorage.getItem("pseudo");
+      if (userName !== null) {
+        setCurrentUser(userName);
+      }
+    } catch (e) {
+      // traitement de l'erreur
+      console.error(e);
+    }
+  };
 
-    const fetchUserName = async () => {
-      try {
-        const userName = await AsyncStorage.getItem('pseudo');
-        if (userName !== null) {
-          setCurrentUser(userName);
+  useEffect(() => {
+    const socket = getSocket();
+    const fetchGroups = async () => {
+      socket.emit(
+        "packet",
+        await encodeAsync({ networkId: "get_list_client_packet" }),
+      );
+    };
+    const handleCustomEvent = async (buffer: Uint8Array) => {
+      const packet: IPacket = await decodeAsync(buffer);
+      if (packet.networkId === "status_client_packet") {
+        const statusPacket: IStatusClientPacket = packet as IStatusClientPacket;
+        if (statusPacket.status === "add") {
+          setUsers((
+            users,
+          ) => [...users, {
+            id: String(users.length + 1),
+            name: statusPacket.client,
+          }]);
+        } else if (statusPacket.status === "remove") {
+          setUsers((
+            users,
+          ) => [...users.filter((user) => user.name !== statusPacket.client)]);
         }
-      } catch (e) {
-        // traitement de l'erreur
-        console.error(e);
+      } else if (packet.networkId === "client_list_packet") {
+        const listPacket = packet as IClientListPacket;
+        let id = 0;
+        setUsers((users) =>
+          listPacket.clients.map((client) => ({
+            id: String(id++),
+            name: client,
+          }))
+        );
       }
     };
-
-    useEffect(() => {
-      const socket = getSocket();
-      const fetchGroups = async () => {
-        socket.emit("packet", await encodeAsync({ networkId: "get_list_client_packet"}));
-      };
-      const handleCustomEvent = async (buffer: Uint8Array) => {
-        const packet: IPacket = await decodeAsync(buffer);
-        if (packet.networkId === "status_client_packet") {
-          const statusPacket: IStatusClientPacket = packet as IStatusClientPacket;
-          if(statusPacket.status === "add"){
-            setUsers((users) => [...users, { id: String(users.length + 1), name: statusPacket.client }]);
-          }else if(statusPacket.status === "remove") {
-            setUsers((users) =>  [...users.filter((user) => user.name !== statusPacket.client)] );
-          }
-        }else if(packet.networkId === "client_list_packet") {
-          const listPacket = packet as IClientListPacket;
-          let id = 0;
-          setUsers((users) => listPacket.clients.map((client) => ({ id: String(id++), name: client })));
-        }
-      };
-      socket.on("packet", handleCustomEvent);
-      fetchGroups();
-      return () => {
-        console.log('Component will unmount, cleaning up...');
-        // Désabonner l'événement pour éviter les fuites de mémoire
-        socket.off('packet', handleCustomEvent);
-      };
-    }, []);
+    socket.on("packet", handleCustomEvent);
+    fetchGroups();
+    return () => {
+      console.log("Component will unmount, cleaning up...");
+      // Désabonner l'événement pour éviter les fuites de mémoire
+      socket.off("packet", handleCustomEvent);
+    };
+  }, []);
 
   const handleSelectUser = async (userName: string) => {
-    navigation.navigate("Chat", { user: userName});
+    navigation.navigate("Chat", { user: userName });
   };
 
   return (

@@ -1,8 +1,8 @@
 // src/components/ChatHeader.tsx
 
-import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
-import FontAwesome from 'react-native-vector-icons/FontAwesome';
+import React from "react";
+import { StyleSheet, Text, View } from "react-native";
+import FontAwesome from "react-native-vector-icons/FontAwesome";
 
 type ChatHeaderProps = {
   title: string;
@@ -24,15 +24,15 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({ title, isGlobalChat }) => {
 
 const styles = StyleSheet.create({
   container: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     padding: 10,
-    backgroundColor: '#f0f0f0',
+    backgroundColor: "#f0f0f0",
   },
   text: {
     marginLeft: 10,
     fontSize: 18,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
 });
 
