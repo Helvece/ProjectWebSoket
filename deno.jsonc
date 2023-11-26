@@ -1,0 +1,24 @@
+{
+  "tasks": {
+    "dev": "deno fmt  &> /dev/null && clear && deno run --watch --allow-net src/prod/main.ts",
+    "compile": "deno compile --target x86_64-pc-windows-msvc --allow-net src/prod/main.ts"
+  },
+  "lint": {
+    "include": ["src/"],
+    "exclude": [
+      "src/test/",
+      "src/bench/"
+    ],
+    "rules": {
+      "tags": ["recommended"],
+      "include": [
+        "ban-untagged-todo",
+        "no-unused-vars"
+      ],
+      "exclude": [
+        "no-explicit-any",
+        "no-inferrable-types"
+      ]
+    }
+  }
+}
